@@ -1,8 +1,10 @@
-NOTE: This is created using Ubuntu Linux Distribution
+Using llama3.1
 
-To create Dev Env
+## To create Dev Env
 python3.11 -m venv llm-env
 
-To Run Dev Env
+## To Run Dev Env
 source llm-env/bin/activate
 pip install -r requirements.txt
+
+H~2~O NOTE: This is created using Ubuntu Linux Distribution
