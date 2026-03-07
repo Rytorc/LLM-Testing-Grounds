@@ -7,4 +7,4 @@ python3.11 -m venv llm-env
 source llm-env/bin/activate
 pip install -r requirements.txt
 
-H~2~O NOTE: This is created using Ubuntu Linux Distribution
+~NOTE: This is created using Ubuntu Linux Distribution~
