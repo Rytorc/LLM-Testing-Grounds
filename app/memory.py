@@ -1,8 +1,10 @@
 import json
 import os
+from ollama_client import generate
 
 DEFAULT_DATA_PATH = "data/"
 DEFAULT_DATA_NAME = "history.json"
+MAX_MESSAGES = 10
 
 class ChatMemory:
     def __init__(self):
@@ -18,7 +20,7 @@ class ChatMemory:
 
         else:
             try:
-                os.mkdir(DEFAULT_DATA_PATH)
+                os.makedirs(DEFAULT_DATA_PATH, exist_ok=True)
             except:
                 print("Directory Exists!")
             #For Chatbot Consistency
@@ -39,6 +41,39 @@ class ChatMemory:
         return "\n".join(
             f"{m['role']}: {m['content']}" for m in self.history
         )
+    
+    def summarize_memory(self, messages, model):
+        conversation = "\n".join(
+            [f"{m['role']}: {m['content']}" for m in messages]
+        )
+
+        prompt = f"""
+        Summarize the following conversation briefly while preserving important facts.
+
+        Conversation:
+        {conversation}
+
+        Summary:
+        """
+
+        summary = generate(model,prompt)
+
+        return summary
+    
+    def maybe_compress(self, model):
+        if len(self.history) > MAX_MESSAGES:
+
+            old_messages = self.history[:-4]
+            recent_messages = self.history[-4:]
+
+            summary = self.summarize_memory(old_messages, model)
+
+            self.history = [
+                {
+                    "role": "system",
+                    "content": f"Conversation summary: {summary}"
+                }
+            ] + recent_messages
     
     def save_history(self):
         filepath = DEFAULT_DATA_PATH + DEFAULT_DATA_NAME

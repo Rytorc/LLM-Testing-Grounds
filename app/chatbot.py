@@ -12,14 +12,24 @@ class ChatBot:
 
         self.memory.add_user(user_input)
 
-        context_docs = search(user_input)
-        context = "\n".join(context_docs) if context_docs else ""
+        # Compress Memory if needed
+        self.memory.maybe_compress(self.model)
+
+        docs, metadata = search(user_input)
+        context = "\n".join(docs) if docs else ""
+        sources = "\n".join([m["source"] for m in metadata]) if metadata else ""
 
         memory_prompt = self.memory.build_prompt()
 
         prompt = f"""
+        You are a helpful assistant.
+        Use the provided context if relevant.
+
         Context:
         {context}
+
+        Sources:
+        {sources}
 
         Conversation:
         {memory_prompt}
@@ -28,6 +38,9 @@ class ChatBot:
         reply = generate(self.model, prompt)
 
         self.memory.add_assistant(reply)
+
+        # Compress again for optimization
+        self.memory.maybe_compress(self.model)
 
         return reply
     
