@@ -1,5 +1,6 @@
 from memory import ChatMemory
 from ollama_client import generate
+from rag import search
 
 class ChatBot:
 
@@ -11,7 +12,18 @@ class ChatBot:
 
         self.memory.add_user(user_input)
 
-        prompt = self.memory.build_prompt()
+        context_docs = search(user_input)
+        context = "\n".join(context_docs) if context_docs else ""
+
+        memory_prompt = self.memory.build_prompt()
+
+        prompt = f"""
+        Context:
+        {context}
+
+        Conversation:
+        {memory_prompt}
+        """
 
         reply = generate(self.model, prompt)
 
