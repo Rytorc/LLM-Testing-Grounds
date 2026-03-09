@@ -1,0 +1,1 @@
+Ubuntu 22.04 is used for testing servers.

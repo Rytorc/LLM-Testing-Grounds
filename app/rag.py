@@ -1,5 +1,6 @@
 import chromadb
 from sentence_transformers import SentenceTransformer, CrossEncoder
+from keyword_index import keyword_search
 
 client = chromadb.PersistentClient(
     path="data/chroma"
@@ -29,23 +30,28 @@ def search(query, top_k=3):
         n_results=top_k
     )
 
-    documents = results["documents"][0]
-    metadatas = results["metadatas"][0]
+    vector_docs = results["documents"][0]
+    vector_meta = results["metadatas"][0]
 
-    # Prepare pairs for reranker
-    pairs = [[query, doc] for doc in documents]
-    scores = reranker.predict(pairs)
+    # Keyword Search
+    keyword_docs, keyword_meta = keyword_search(query, top_k=5)
 
-    ranked = sorted(
-        zip(documents, metadatas, scores),
-        key=lambda x: x[2],
-        reverse=True
-    )
+    # Combine
+    docs = vector_docs + keyword_docs
+    metas = vector_meta + keyword_meta
 
-    top_docs = [r[0] for r in ranked[:top_k]]
-    top_meta = [r[1] for r in ranked[:top_k]]
+    # Remove Duplicates
+    seen = set()
+    unique_docs = []
+    unique_meta = []
 
-    return top_docs, top_meta
+    for doc, meta in zip(docs, metas):
+        if doc not in seen:
+            unique_docs.append(doc)
+            unique_meta.append(meta)
+            seen.add(doc)
+
+    return unique_docs[:top_k], unique_meta[:top_k]
 
 def chunk_text(text, chunk_size=300, overlap=50):
 

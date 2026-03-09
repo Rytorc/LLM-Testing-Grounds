@@ -1,8 +1,11 @@
 from rag import collection, embedder, chunk_text
 from document_loader import load_document
+from keyword_index import build_index
 import os
 
 DOCS_PATH = "test_documents/"
+all_docs = []
+all_metas = []
 
 for root, dirs, files in os.walk(DOCS_PATH):
 
@@ -15,9 +18,9 @@ for root, dirs, files in os.walk(DOCS_PATH):
 
         relative_path = os.path.relpath(filepath, DOCS_PATH)
 
-        print(f"Ingesting: {file}")
+        print(f"Ingesting: {relative_path}")
 
-        collection.delete(where={"source": file})
+        collection.delete(where={"source": relative_path})
 
         text, ext = load_document(filepath)
 
@@ -32,18 +35,27 @@ for root, dirs, files in os.walk(DOCS_PATH):
 
             embedding = embedder.encode(chunk).tolist()
 
+            meta = {
+                "source": relative_path,
+                "type": ext,
+                "chunk": i
+            }
+
+            all_docs.append(chunk)
+            all_metas.append(meta)
+
+            safe_id = relative_path.replace("/", "_")
+
             collection.add(
                 documents=[chunk],
                 embeddings=[embedding],
-                metadatas=[{
-                    "source": relative_path,
-                    "type": ext,
-                    "chunk": i
-                }],
-                ids=[f"{relative_path}_{i}"]
+                metadatas=[meta],
+                ids=[f"{safe_id}_{i}"]
             )
 
         #LEGACY: Better to separate to chunks
         #add_document(text)
 
+build_index(all_docs, all_metas)
+print(f"BM25 indexed docs: {len(all_docs)}")
 print("Documents Indexed")

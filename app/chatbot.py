@@ -1,6 +1,7 @@
 from memory import ChatMemory
 from ollama_client import generate
 from rag import search
+from query_rewriter import rewrite_query
 
 class ChatBot:
 
@@ -15,7 +16,9 @@ class ChatBot:
         # Compress Memory if needed
         self.memory.maybe_compress(self.model)
 
-        docs, metadata = search(user_input)
+        rewritten_query = rewrite_query(user_input, self.model)
+
+        docs, metadata = search(rewritten_query)
         context = "\n".join(docs) if docs else ""
         sources = "\n".join([m["source"] for m in metadata]) if metadata else ""
 
