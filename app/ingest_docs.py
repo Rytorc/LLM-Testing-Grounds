@@ -1,32 +1,49 @@
 from rag import collection, embedder, chunk_text
+from document_loader import load_document
 import os
 
 DOCS_PATH = "test_documents/"
 
-for file in os.listdir(DOCS_PATH):
+for root, dirs, files in os.walk(DOCS_PATH):
 
-    filepath = os.path.join(DOCS_PATH, file)
+    for file in files:
 
-    with open(os.path.join(DOCS_PATH, file)) as f:
-        text = f.read()
+        filepath = os.path.join(root, file)
 
-    chunks = chunk_text(text)
+        if not os.path.isfile(filepath):
+            continue
 
-    for i, chunk in enumerate(chunks):
+        relative_path = os.path.relpath(filepath, DOCS_PATH)
 
-        embedding = embedder.encode(chunk).tolist()
+        print(f"Ingesting: {file}")
 
-        collection.add(
-            documents=[chunk],
-            embeddings=[embedding],
-            metadatas=[{
-                "source": file,
-                "chunk": i
-            }],
-            ids=[f"{file}_{i}"]
-        )
+        collection.delete(where={"source": file})
 
-    #LEGACY: Better to separate to chunks
-    #add_document(text)
+        text, ext = load_document(filepath)
+
+        chunks = chunk_text(text)
+
+        print(f"{relative_path}: {len(chunks)} chunks")
+
+        for i, chunk in enumerate(chunks):
+        
+            if not chunk.strip():
+                continue
+
+            embedding = embedder.encode(chunk).tolist()
+
+            collection.add(
+                documents=[chunk],
+                embeddings=[embedding],
+                metadatas=[{
+                    "source": relative_path,
+                    "type": ext,
+                    "chunk": i
+                }],
+                ids=[f"{relative_path}_{i}"]
+            )
+
+        #LEGACY: Better to separate to chunks
+        #add_document(text)
 
 print("Documents Indexed")
