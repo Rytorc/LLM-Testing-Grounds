@@ -3,6 +3,7 @@ from ollama_client import generate_stream
 from rag import search_multi_query
 from query_rewriter import rewrite_query, generate_multi_queries
 from context_compressor import compress_context
+from response_formatter import format_response_with_sources
 
 class ChatBot:
 
@@ -31,22 +32,20 @@ class ChatBot:
             self.model
         )
 
-        sources = "\n".join(
-            sorted([m["source"] for m in metadata])
-        ) if metadata else ""
-
         memory_prompt = self.memory.build_prompt()
 
         prompt = f"""
         You are a helpful assistant.
         Use the provided context if relevant.
-        If the evidence is insufficient, say so clearly
+        If the evidence is insufficient, say so clearly.
+
+        Important:
+        - Do NOT include a "Sources" section.
+        - Do NOT cite sources in your answer.
+        - The system will add sources separately.
 
         Evidence Summary:
         {compressed_context}
-
-        Sources:
-        {sources}
 
         Conversation:
         {memory_prompt}
@@ -55,10 +54,15 @@ class ChatBot:
         print("Bot: ", end="", flush=True)
         reply = generate_stream(self.model, prompt)
 
-        self.memory.add_assistant(reply)
+        final_reply, unique_sources, sources_text = format_response_with_sources(reply, metadata)
+
+        if sources_text:
+            print(f"\n{sources_text}")
+
+        self.memory.add_assistant(final_reply)
         self.memory.maybe_compress(self.model)
 
-        return reply
+        return final_reply
     
     def save(self):
         self.memory.save_history()
