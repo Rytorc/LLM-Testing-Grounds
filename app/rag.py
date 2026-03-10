@@ -21,20 +21,20 @@ def add_document(text):
         ids=[str(hash(text))]
     )
 
-def search(query, top_k=3):
+def search_single_query(query, vector_k=5, keyword_k=5):
 
     query_embedding = embedder.encode(query).tolist()
 
     results = collection.query(
         query_embeddings=[query_embedding],
-        n_results=top_k
+        n_results=vector_k
     )
 
-    vector_docs = results["documents"][0]
-    vector_meta = results["metadatas"][0]
+    vector_docs = results["documents"][0] if results["documents"] else []
+    vector_meta = results["metadatas"][0] if results["metadatas"] else []
 
     # Keyword Search
-    keyword_docs, keyword_meta = keyword_search(query, top_k=5)
+    keyword_docs, keyword_meta = keyword_search(query, top_k=keyword_k)
 
     # Combine
     docs = vector_docs + keyword_docs
@@ -46,12 +46,55 @@ def search(query, top_k=3):
     unique_meta = []
 
     for doc, meta in zip(docs, metas):
-        if doc not in seen:
+        key = (doc.strip(), meta.get("source"), meta.get("chunk"))
+        if key not in seen:
             unique_docs.append(doc)
             unique_meta.append(meta)
-            seen.add(doc)
+            seen.add(key)
 
-    return unique_docs[:top_k], unique_meta[:top_k]
+    return unique_docs, unique_meta
+
+def search_multi_query(queries, top_k=3, vector_k=5, keyword_k=5):
+    all_docs = []
+    all_metas = []
+
+    for query in queries:
+        docs, metas = search_single_query(
+            query,
+            vector_k=vector_k,
+            keyword_k=keyword_k
+        )
+
+        all_docs.extend(docs)
+        all_metas.extend(metas)
+
+    seen = set()
+    merged_docs = []
+    merged_metas = []
+
+    for doc, meta in zip(all_docs, all_metas):
+        key = (doc.strip(), meta.get("source"), meta.get("chunk"))
+        if key not in seen:
+            merged_docs.append(doc)
+            merged_metas.append(meta)
+            seen.add(key)
+
+    if not merged_docs:
+        return [], []
+    
+    pairs = [[queries[0], doc] for doc in merged_docs]
+    scores = reranker.predict(pairs)
+
+    ranked = sorted(
+        zip(merged_docs, merged_metas, scores),
+        key=lambda x: x[2],
+        reverse=True
+    )
+
+    top_docs = [item[0] for item in ranked[:top_k]]
+    top_metas = [item[1] for item in ranked[:top_k]]
+
+    return top_docs, top_metas
 
 def chunk_text(text, chunk_size=300, overlap=50):
 

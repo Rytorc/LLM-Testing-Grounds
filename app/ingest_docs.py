@@ -1,4 +1,5 @@
 from rag import collection, embedder, chunk_text
+from semantic_chunker import semantic_chunk
 from document_loader import load_document
 from keyword_index import build_index
 import os
@@ -24,9 +25,9 @@ for root, dirs, files in os.walk(DOCS_PATH):
 
         text, ext = load_document(filepath)
 
-        chunks = chunk_text(text)
+        chunks = semantic_chunk(text, ext)
 
-        print(f"{relative_path}: {len(chunks)} chunks")
+        print(f"{relative_path}: {len(chunks)} semantic chunks")
 
         for i, chunk in enumerate(chunks):
         

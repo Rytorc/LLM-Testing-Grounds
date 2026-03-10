@@ -12,5 +12,3 @@ while True:
         break
 
     reply = bot.chat(user)
-
-    print("Bot:", reply)
