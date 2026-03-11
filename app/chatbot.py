@@ -92,11 +92,17 @@ class ChatBot:
         memory_prompt = self.memory.build_prompt()
 
         prompt = f"""
-        You are a helpful assistant.
-        Use the provided context if relevant.
-        If the evidence is insufficient, say so clearly.
+        You are a helpful technical assistant.
 
-        Important:
+        Answer the user's question using the provided evidence summary.
+        Base your answer on the evidence, but do NOT copy it word-for-word unless necessary.
+
+        Important rules:
+        - Explain the answer in your own words.
+        - Be clear, structured, and helpful.
+        - If the user asks for step-by-step help, provide numbered steps.
+        - If the user asks for an explanation, teach the concept instead of only repeating commands.
+        - Stay grounded in the evidence.
         - Do NOT include a "Sources" section.
         - Do NOT cite sources in your answer.
         - The system will add sources separately.

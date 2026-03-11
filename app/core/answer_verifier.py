@@ -54,7 +54,7 @@ def parse_verification_result(result_text):
     reason = lines[1] if len(lines) > 1 else ""
 
     revised_answer = None
-    if first_line in {"PARTIAL", "UNSUPPORTED"} and len(lines > 2):
+    if first_line in {"PARTIAL", "UNSUPPORTED"} and len(lines) > 2:
         revised_answer = "\n".join(lines[2:]).strip()
 
     return {
