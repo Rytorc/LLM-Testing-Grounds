@@ -4,12 +4,14 @@ from rag import search_multi_query
 from query_rewriter import rewrite_query, generate_multi_queries
 from context_compressor import compress_context
 from response_formatter import format_response_with_sources
+
 from tools import list_documents, read_document, search_sources
 from tool_formatter import (
     format_document_list,
     format_source_matches,
     format_document_content
 )
+from tool_router import decide_action, parse_action, execute_tool_action
 
 class ChatBot:
 
@@ -42,17 +44,22 @@ class ChatBot:
         return None
 
     def chat(self, user_input):
-        tool_response = self.try_handle_tool(user_input)
+        available_documents = list_documents()
+        action_text = decide_action(user_input, available_documents, self.model)
+        parsed_action = parse_action(action_text)
 
-        if tool_response is not None:
-            print("Bot: ", end="", flush=True)
-            print(tool_response)
+        if parsed_action["type"] == "tool":
+            tool_response = execute_tool_action(parsed_action)
 
-            self.memory.add_user(user_input)
-            self.memory.add_assistant(tool_response)
-            self.memory.maybe_compress(self.model)
+            if tool_response is not None:
+                print("Bot: ", end="", flush=True)
+                print(tool_response)
 
-            return tool_response
+                self.memory.add_user(user_input)
+                self.memory.add_assistant(tool_response)
+                self.memory.maybe_compress(self.model)
+
+                return tool_response
 
         self.memory.add_user(user_input)
         self.memory.maybe_compress(self.model)
