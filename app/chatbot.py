@@ -1,10 +1,11 @@
 from app.core.memory import ChatMemory
 from app.core.ollama_client import generate_stream
+from app.core.response_formatter import format_response_with_sources
+from app.core.answer_verifier import apply_verification
 
 from app.retrieval.retriever import search_multi_query
 from app.retrieval.query_rewriter import rewrite_query, generate_multi_queries
 from app.retrieval.context_compressor import compress_context
-from app.core.response_formatter import format_response_with_sources
 
 from app.tools.document_tools import list_documents, read_document, search_sources
 from app.tools.tool_formatter import (
@@ -108,9 +109,23 @@ class ChatBot:
         """
 
         print("Bot: ", end="", flush=True)
-        reply = generate_stream(self.model, prompt)
 
-        final_reply, unique_sources, sources_text = format_response_with_sources(reply, metadata)
+        draft_reply = generate_stream(self.model, prompt)
+
+        verification = apply_verification(
+            user_input=user_input,
+            evidence_summary=compressed_context,
+            draft_answer=draft_reply,
+            model=self.model,
+        )
+
+        verified_reply = verification["final_answer"]
+
+        if verified_reply != draft_reply:
+            print("\n\n[Answer revised for accuracy]")
+            print(verified_reply)
+
+        final_reply, unique_sources, sources_text = format_response_with_sources(verified_reply, metadata)
 
         if sources_text:
             print(f"\n{sources_text}")
