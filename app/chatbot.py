@@ -1,23 +1,26 @@
-from memory import ChatMemory
-from ollama_client import generate_stream
-from rag import search_multi_query
-from query_rewriter import rewrite_query, generate_multi_queries
-from context_compressor import compress_context
-from response_formatter import format_response_with_sources
+from app.core.memory import ChatMemory
+from app.core.ollama_client import generate_stream
 
-from tools import list_documents, read_document, search_sources
-from tool_formatter import (
+from app.retrieval.retriever import search_multi_query
+from app.retrieval.query_rewriter import rewrite_query, generate_multi_queries
+from app.retrieval.context_compressor import compress_context
+from app.core.response_formatter import format_response_with_sources
+
+from app.tools.document_tools import list_documents, read_document, search_sources
+from app.tools.tool_formatter import (
     format_document_list,
     format_source_matches,
     format_document_content
 )
-from tool_router import decide_action, parse_action, execute_tool_action
+from app.tools.tool_router import decide_action, parse_action, execute_tool_action
+
+from .config import settings
 
 class ChatBot:
 
-    def __init__(self, model="llama3.1"):
+    def __init__(self, model=None):
         self.memory = ChatMemory()
-        self.model = model
+        self.model = model or settings.model_name
 
     def try_handle_tool(self, user_input):
         lowered = user_input.strip().lower()
@@ -71,7 +74,12 @@ class ChatBot:
             q for q in extra_queries if q.lower() != rewritten_query.lower()
         ]
 
-        docs, metadata = search_multi_query(queries, top_k=3)
+        docs, metadata = search_multi_query(
+            queries, 
+            settings.retrieval_top_k, 
+            settings.vector_search_k, 
+            settings.keyword_search_k
+        )
 
         compressed_context = compress_context(
             rewritten_query,

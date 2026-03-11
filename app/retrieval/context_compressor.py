@@ -1,4 +1,4 @@
-from ollama_client import generate
+from app.core.ollama_client import generate
 
 def compress_context(query, docs, metadata, model):
     if not docs:

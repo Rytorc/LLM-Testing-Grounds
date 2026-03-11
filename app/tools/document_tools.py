@@ -1,6 +1,8 @@
 import os
 
-DOCS_PATH = "test_documents/"
+from app.config import settings
+
+DOCS_PATH = settings.docs_path
 
 def list_documents():
     documents = []

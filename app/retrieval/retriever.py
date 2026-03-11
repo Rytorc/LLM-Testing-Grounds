@@ -1,9 +1,12 @@
 import chromadb
+
 from sentence_transformers import SentenceTransformer, CrossEncoder
-from keyword_index import keyword_search
+from .keyword_index import keyword_search
+
+from app.config import settings
 
 client = chromadb.PersistentClient(
-    path="data/chroma"
+    path=settings.chroma_path
 )
 
 collection = client.get_or_create_collection("documents")

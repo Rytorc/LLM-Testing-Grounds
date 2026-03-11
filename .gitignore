@@ -37,6 +37,7 @@ llm-env/
 venv/
 .env/
 .envrc
+.env.production
 
 # =========================
 

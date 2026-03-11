@@ -1,7 +1,9 @@
 import requests
 import json
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
+from app.config import settings
+
+OLLAMA_URL = settings.ollama_url
 
 def generate(model, prompt):
     response = requests.post(

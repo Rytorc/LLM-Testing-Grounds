@@ -1,5 +1,7 @@
 import re
 
+from app.config import settings
+
 def chunk_markdown(text):
     pattern = r"(#+ .*)"
 
@@ -48,8 +50,9 @@ def chunk_code(text):
 
     return chunks
 
-def chunk_fallback(text, size=400):
+def chunk_fallback(text):
     words = text.split()
+    size = settings.chunk_size
 
     chunks = []
 

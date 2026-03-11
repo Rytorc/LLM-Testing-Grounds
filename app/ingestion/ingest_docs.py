@@ -1,10 +1,14 @@
-from rag import collection, embedder, chunk_text
-from semantic_chunker import semantic_chunk
-from document_loader import load_document
-from keyword_index import build_index
+from app.retrieval.retriever import collection, embedder, chunk_text
+from app.retrieval.semantic_chunker import semantic_chunk
+from app.retrieval.keyword_index import build_index
+
+from .document_loader import load_document
+
+from app.config import settings
+
 import os
 
-DOCS_PATH = "test_documents/"
+DOCS_PATH = settings.docs_path
 all_docs = []
 all_metas = []
 

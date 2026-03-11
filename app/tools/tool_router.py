@@ -1,6 +1,6 @@
-from ollama_client import generate
-from tools import list_documents, read_document, search_sources
-from tool_formatter import (
+from app.core.ollama_client import generate
+from app.tools.document_tools import list_documents, read_document, search_sources
+from .tool_formatter import (
     format_document_list,
     format_source_matches,
     format_document_content,

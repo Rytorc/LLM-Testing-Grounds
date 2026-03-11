@@ -1,16 +1,19 @@
 import json
 import os
-from ollama_client import generate
 
-DEFAULT_DATA_PATH = "data/"
-DEFAULT_DATA_NAME = "history.json"
-MAX_MESSAGES = 10
+from .ollama_client import generate
+
+from app.config import settings
+
+DEFAULT_DATA_PATH = settings.data_path
+DEFAULT_DATA_NAME = settings.history_file
+MAX_MESSAGES = settings.max_messages
 
 class ChatMemory:
     def __init__(self):
         print(os.getcwd())
 
-        filepath = DEFAULT_DATA_PATH + DEFAULT_DATA_NAME
+        filepath = os.path.join(DEFAULT_DATA_PATH, DEFAULT_DATA_NAME)
         if os.path.isfile(filepath) and os.access(filepath, os.R_OK):
             try:
                 with open(filepath, 'r') as file:

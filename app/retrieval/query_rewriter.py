@@ -1,4 +1,4 @@
-from ollama_client import generate
+from app.core.ollama_client import generate
 
 def rewrite_query(query, model):
     prompt = f"""
