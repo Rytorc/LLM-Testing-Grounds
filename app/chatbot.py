@@ -4,6 +4,12 @@ from rag import search_multi_query
 from query_rewriter import rewrite_query, generate_multi_queries
 from context_compressor import compress_context
 from response_formatter import format_response_with_sources
+from tools import list_documents, read_document, search_sources
+from tool_formatter import (
+    format_document_list,
+    format_source_matches,
+    format_document_content
+)
 
 class ChatBot:
 
@@ -11,7 +17,42 @@ class ChatBot:
         self.memory = ChatMemory()
         self.model = model
 
+    def try_handle_tool(self, user_input):
+        lowered = user_input.strip().lower()
+
+        if lowered in ["list documents", "show documents", "show indexed documents"]:
+            documents = list_documents()
+            return format_document_list(documents)
+        
+        if lowered.startswith("read document "):
+            source = user_input[len("read document "):].strip()
+            content = read_document(source)
+            return format_document_content(source, content)
+        
+        if lowered.startswith("find document "):
+            query = user_input[len("find document "):].strip()
+            matches = search_sources(query)
+            return format_source_matches(matches, query)
+        
+        if lowered.startswith("search sources "):
+            query = user_input[len("search sources "):].strip()
+            matches = search_sources(query)
+            return format_source_matches(matches, query)
+        
+        return None
+
     def chat(self, user_input):
+        tool_response = self.try_handle_tool(user_input)
+
+        if tool_response is not None:
+            print("Bot: ", end="", flush=True)
+            print(tool_response)
+
+            self.memory.add_user(user_input)
+            self.memory.add_assistant(tool_response)
+            self.memory.maybe_compress(self.model)
+
+            return tool_response
 
         self.memory.add_user(user_input)
         self.memory.maybe_compress(self.model)
