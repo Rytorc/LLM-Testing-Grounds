@@ -57,6 +57,31 @@ def decide_action(user_input, documents, model):
     - If the user is asking to find documents by topic, return tool:search_sources:<query>
     - If unsure, return: rag
 
+    Important:
+    - If the user is asking for an explanation or instructions, return rag.
+    - If the user is asking how to do something, return rag.
+    - Only use read_document when they clearly want the raw contents of a file.
+    - If unsure, return rag.
+
+    Examples of Conversation Proper:
+    User: How do I install Docker?
+    Action: rag
+
+    User: Explain Docker installation step by step
+    Action: rag
+
+    User: Open notes/docker.md
+    Action: tool:read_document:notes/docker.md
+
+    User: Show me the contents of notes/docker.md
+    Action: tool:read_document:notes/docker.md
+
+    User: Do I have any Docker documents?
+    Action: tool:search_sources:docker
+
+    User: What documents do I have indexed?
+    Action: tool:list_documents
+
     User input:
     {user_input}
 

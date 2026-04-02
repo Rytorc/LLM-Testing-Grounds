@@ -30,5 +30,9 @@ class Settings:
     max_messages: int = int(os.getenv("MAX_MESSAGES", "10"))
     chunk_size: int = int(os.getenv("CHUNK_SIZE", "300"))
     chunk_overlap: int = int(os.getenv("CHUNK_OVERLAP", "50"))
+    
+    api_host: str = os.getenv("API_HOST", "127.0.0.1")
+    api_port: int = int(os.getenv("API_PORT", "8000"))
+    api_title: str = os.getenv("API_TITLE", "Local Chatbot API")
 
 settings = Settings()

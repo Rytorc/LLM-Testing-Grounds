@@ -1,6 +1,6 @@
 from app.core.memory import ChatMemory
 from app.core.ollama_client import generate_stream
-from app.core.response_formatter import format_response_with_sources
+from app.core.response_formatter import build_sources_text, extract_unique_sources
 from app.core.answer_verifier import apply_verification
 
 from app.retrieval.retriever import search_multi_query
@@ -47,7 +47,7 @@ class ChatBot:
         
         return None
 
-    def chat(self, user_input):
+    def chat_structured(self , user_input: str) -> dict:
         available_documents = list_documents()
         action_text = decide_action(user_input, available_documents, self.model)
         parsed_action = parse_action(action_text)
@@ -56,20 +56,25 @@ class ChatBot:
             tool_response = execute_tool_action(parsed_action)
 
             if tool_response is not None:
-                print("Bot: ", end="", flush=True)
-                print(tool_response)
+                tool_name = parsed_action.get("tool")
 
                 self.memory.add_user(user_input)
                 self.memory.add_assistant(tool_response)
                 self.memory.maybe_compress(self.model)
 
-                return tool_response
+                return {
+                    "answer": tool_response,
+                    "sources": [],
+                    "used_tool": True,
+                    "tool_name": tool_name,
+                    "verification_status": None,
+                }
 
         self.memory.add_user(user_input)
         self.memory.maybe_compress(self.model)
 
         rewritten_query = rewrite_query(user_input, self.model)
-        extra_queries = generate_multi_queries(rewritten_query, self.model, n=4)
+        extra_queries = generate_multi_queries(rewritten_query, self.model, n=settings.multi_query_count)
 
         queries = [rewritten_query] + [
             q for q in extra_queries if q.lower() != rewritten_query.lower()
@@ -107,6 +112,9 @@ class ChatBot:
         - Do NOT cite sources in your answer.
         - The system will add sources separately.
 
+        User question:
+        {user_input}
+
         Evidence Summary:
         {compressed_context}
 
@@ -126,20 +134,31 @@ class ChatBot:
         )
 
         verified_reply = verification["final_answer"]
+        sources = extract_unique_sources(metadata)
 
-        if verified_reply != draft_reply:
-            print("\n\n[Answer revised for accuracy]")
-            print(verified_reply)
-
-        final_reply, unique_sources, sources_text = format_response_with_sources(verified_reply, metadata)
-
-        if sources_text:
-            print(f"\n{sources_text}")
-
-        self.memory.add_assistant(final_reply)
+        self.memory.add_assistant(verified_reply)
         self.memory.maybe_compress(self.model)
 
-        return final_reply
+        return {
+            "answer": verified_reply,
+            "sources": sources,
+            "used_tool": False,
+            "tool_name": None,
+            "verification_status": verification["verification_status"]
+        }
+
+
+    def chat(self, user_input: str) -> str:
+        result = self.chat_structured(user_input)
+
+        answer = result["answer"]
+        sources = result["sources"]
+
+        sources_text = build_sources_text(sources)
+        if sources_text:
+            return f"{answer}\n\n{sources_text}"
+        
+        return answer
     
     def save(self):
         self.memory.save_history()
