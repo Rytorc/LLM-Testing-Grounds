@@ -1,0 +1,42 @@
+[
+  {
+    "name": "docker_install_explanation",
+    "input": "How do I install Docker?",
+    "expected_used_tool": false,
+    "expected_tool_name": null,
+    "expected_sources": ["notes/docker.md"],
+    "expected_keywords": ["apt update", "docker.io", "systemctl start docker"],
+    "forbidden_keywords": ["Document:", "# Docker Quick Notes"],
+    "expected_verification_status": "SUPPORTED"
+  },
+  {
+    "name": "list_documents_tool",
+    "input": "What documents do I have indexed?",
+    "expected_used_tool": true,
+    "expected_tool_name": "list_documents",
+    "expected_sources": [],
+    "expected_keywords": ["notes/docker.md"],
+    "forbidden_keywords": [],
+    "expected_verification_status": null
+  },
+  {
+    "name": "read_document_tool",
+    "input": "Open notes/docker.md",
+    "expected_used_tool": true,
+    "expected_tool_name": "read_document",
+    "expected_sources": [],
+    "expected_keywords": ["Docker Quick Notes"],
+    "forbidden_keywords": [],
+    "expected_verification_status": null
+  },
+  {
+    "name": "search_sources_tool",
+    "input": "Do I have any Ubuntu-related files?",
+    "expected_used_tool": true,
+    "expected_tool_name": "search_sources",
+    "expected_sources": [],
+    "expected_keywords": ["ubuntu"],
+    "forbidden_keywords": [],
+    "expected_verification_status": null
+  }
+]

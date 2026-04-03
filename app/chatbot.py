@@ -19,8 +19,11 @@ from .config import settings
 
 class ChatBot:
 
-    def __init__(self, model=None):
-        self.memory = ChatMemory()
+    def __init__(self, model=None, persist_memory=True, history_file=None):
+        self.memory = ChatMemory(
+            persist=persist_memory,
+            history_file=history_file
+        )
         self.model = model or settings.model_name
 
     def try_handle_tool(self, user_input):

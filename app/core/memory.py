@@ -10,16 +10,22 @@ DEFAULT_DATA_NAME = settings.history_file
 MAX_MESSAGES = settings.max_messages
 
 class ChatMemory:
-    def __init__(self):
-        print(os.getcwd())
+    def __init__(self, persist=True, history_file=None):
+        self.persist = persist
+        self.history_file = history_file or os.path.join(DEFAULT_DATA_PATH, DEFAULT_DATA_NAME)
 
-        filepath = os.path.join(DEFAULT_DATA_PATH, DEFAULT_DATA_NAME)
-        if os.path.isfile(filepath) and os.access(filepath, os.R_OK):
+        if os.path.isfile(self.history_file) and os.access(self.history_file, os.R_OK):
             try:
-                with open(filepath, 'r') as file:
+                with open(self.history_file, 'r') as file:
                     self.history = json.load(file)
-            except:
+            except Exception:
                 print("Failed to read file!")
+                self.history = [
+                    {
+                        "role": "system",
+                        "content": "You are a helpful personal assistant for a software developer"
+                    }
+                ]
 
         else:
             try:
@@ -79,7 +85,8 @@ class ChatMemory:
             ] + recent_messages
     
     def save_history(self):
-        filepath = DEFAULT_DATA_PATH + DEFAULT_DATA_NAME
-        with open(filepath, 'w') as file:
-            converted_json = json.dumps(self.history)
-            file.write(converted_json)
+        if not self.persist:
+            return
+
+        with open(self.history_file, 'w') as file:
+            json.dump(self.history, file, indent=2)
