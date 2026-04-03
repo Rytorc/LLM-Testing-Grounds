@@ -21,7 +21,7 @@ def check_forbidden_keywords(answer, forbidden_keywords):
     found = []
 
     for keyword in forbidden_keywords:
-        if keyword.lower() not in answer_lower:
+        if keyword.lower() in answer_lower:
             found.append(keyword)
 
     return found
@@ -43,7 +43,7 @@ def evaluate_case(bot, case):
 
     if result.get("used_tool") != case.get("expected_used_tool"):
         failures.append(
-            f'used_tool expected {case.get("expected_use_tool")} but got {result.get("used_tool")}'
+            f'used_tool expected {case.get("expected_used_tool")} but got {result.get("used_tool")}'
         )
 
     if result.get("tool_name") != case.get("expected_tool_name"):

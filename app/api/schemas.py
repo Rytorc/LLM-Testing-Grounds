@@ -1,12 +1,13 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
 
 class ChatRequest(BaseModel):
     message: str
+    session_id: str = Field(default="default")
 
 class ChatResponse(BaseModel):
     answer: str
-    sources: List[str] = []
+    sources: List[str] = Field(default_factory=list)
     used_tool: bool = False
     tool_name: Optional[str] = None
     verification_status: Optional[str]= None

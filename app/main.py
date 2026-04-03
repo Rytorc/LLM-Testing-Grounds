@@ -5,10 +5,11 @@ bot = ChatBot()
 print("Personal AI ready. Type 'exit' to quit.")
 
 while True:
-    user = input("You: ")
+    user = input("You: ").strip()
 
-    if user == "exit":
+    if user.lower() == "exit":
         bot.save()
         break
 
     reply = bot.chat(user)
+    print(f"Bot: {reply}")

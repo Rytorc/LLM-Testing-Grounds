@@ -8,7 +8,7 @@ DOCS_PATH = settings.docs_path
 def list_documents():
     documents = []
 
-    for root, dirs, files in os.walk(DOCS_PATH):
+    for root, _, files in os.walk(DOCS_PATH):
         for file in files:
             filepath = os.path.join(root, file)
             if not os.path.isfile(filepath):
@@ -44,7 +44,7 @@ def search_sources(query):
 
 def score_source_match(query, source):
     query_lower = query.lower().strip()
-    source_lower = source.lower
+    source_lower = source.lower().strip()
 
     score = 0.0
 
@@ -74,5 +74,4 @@ def resolve_document_request(query, min_score=20, max_results=5):
             candidates.append((source, score))
 
     candidates.sort(key=lambda item: item[1], reverse=True)
-
     return candidates[:max_results]

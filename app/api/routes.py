@@ -11,7 +11,15 @@ from app.tools.document_tools import list_documents, read_document
 from app.core.response_formatter import extract_unique_sources
 
 router = APIRouter()
-bot = ChatBot()
+
+_sessions = {}
+
+def get_session_bot(session_id: str) -> ChatBot:
+    if session_id not in _sessions:
+        _sessions[session_id] = ChatBot(
+            persist_memory=False
+        )
+    return _sessions[session_id]
 
 @router.get("/health", response_model=HealthResponse)
 def health():
@@ -19,8 +27,8 @@ def health():
 
 @router.post("/chat", response_model=ChatResponse)
 def chat(request: ChatRequest):
+    bot = get_session_bot(request.session_id)
     result = bot.chat_structured(request.message)
-
     return result
 
 @router.get("/documents", response_model=DocumentsResponse)

@@ -50,13 +50,13 @@
   "expected_verification_status": null
   },
   {
-  "name": "open_docker_notes_natural",
-  "input": "Open the Docker notes",
-  "expected_used_tool": true,
-  "expected_tool_name": "read_document",
-  "expected_sources": ["notes/docker.md"],
-  "expected_keywords": ["Docker Quick Notes"],
-  "forbidden_keywords": [],
-  "expected_verification_status": null
+  "name": "unknown_topic_should_not_bluff",
+  "input": "What is the Kubernetes deployment process in my notes?",
+  "expected_used_tool": false,
+  "expected_tool_name": null,
+  "expected_sources": [],
+  "expected_keywords": ["don’t", "not enough", "evidence"],
+  "forbidden_keywords": ["kubectl apply", "deployment.yaml"],
+  "expected_verification_status": "UNSUPPORTED"
   }
 ]

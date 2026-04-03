@@ -1,6 +1,6 @@
 from .ollama_client import generate
 
-def verify_answer(user_input, evidence_summary, draft_answer, model):
+def verify_answer(user_input, evidence_text, draft_answer, model):
     prompt = f"""
     You are a verification assistant.
 
@@ -9,8 +9,8 @@ def verify_answer(user_input, evidence_summary, draft_answer, model):
     Rules:
     - Return exactly one of these labels on the first line:
     SUPPORTED
-    UNSUPPORTED
     PARTIAL
+    UNSUPPORTED
 
     - On the second line, briefly explain why.
     - If the answer is PARTIAL or UNSUPPORTED, include a revised safer answer on later lines.
@@ -20,8 +20,8 @@ def verify_answer(user_input, evidence_summary, draft_answer, model):
     User question:
     {user_input}
 
-    Evidence summary:
-    {evidence_summary}
+    Evidence:
+    {evidence_text}
 
     Draft answer:
     {draft_answer}
@@ -63,8 +63,8 @@ def parse_verification_result(result_text):
         "revised_answer": revised_answer or None,
     }
 
-def apply_verification(user_input, evidence_summary, draft_answer, model):
-    raw_result = verify_answer(user_input, evidence_summary, draft_answer, model)
+def apply_verification(user_input, evidence_text, draft_answer, model):
+    raw_result = verify_answer(user_input, evidence_text, draft_answer, model)
     parsed = parse_verification_result(raw_result)
 
     status = parsed["status"]

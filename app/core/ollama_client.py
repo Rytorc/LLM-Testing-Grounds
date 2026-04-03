@@ -4,23 +4,40 @@ import json
 from app.config import settings
 
 OLLAMA_URL = settings.ollama_url
+REQUEST_TIMEOUT = settings.request_timeout
+
+class OllamaClientError(Exception):
+    pass
+
+def _post(payload, stream=False):
+    try:
+        response = requests.post(
+            OLLAMA_URL,
+            json=payload,
+            stream=stream,
+            timeout=REQUEST_TIMEOUT,
+        )
+        response.raise_for_status()
+        return response
+    except requests.RequestException as e:
+        raise OllamaClientError(f"Ollama request failed: {e}") from e
 
 def generate(model, prompt):
-    response = requests.post(
-        OLLAMA_URL,
-        json={
+    response = _post(
+        {
             "model": model,
             "prompt": prompt,
             "stream": False
-        }
+        },
+        stream=False,
     )
 
-    return response.json()["response"]
+    data = response.json()
+    return data.get("response", "").strip()
 
 def generate_stream(model, prompt):
-    response = requests.post(
-        OLLAMA_URL,
-        json={
+    response = _post(
+        {
             "model": model,
             "prompt": prompt,
             "stream": True
@@ -34,15 +51,13 @@ def generate_stream(model, prompt):
         if not line:
             continue
 
-        data = json.loads(line)
+        try:
+            data = json.loads(line)
+        except json.JSONDecodeError:
+            continue
 
-        if "response" in data:
-            token = data ["response"]
-
-            print(token, end="", flush=True)
-
+        token = data.get("response")
+        if token:
             full_response += token
 
-    print()
-
-    return full_response
+    return full_response.strip()

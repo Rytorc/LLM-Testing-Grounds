@@ -16,6 +16,7 @@ class Settings:
 
     model_name: str = os.getenv("MODEL_NAME", "llama3.1")
     ollama_url: str = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
+    request_timeout: int = int(os.getenv("REQUEST_TIMEOUT", "120"))
 
     docs_path: str = os.getenv("DOCS_PATH", "test_documents")
     data_path: str = os.getenv("DATA_PATH", "data")
@@ -30,7 +31,7 @@ class Settings:
     max_messages: int = int(os.getenv("MAX_MESSAGES", "10"))
     chunk_size: int = int(os.getenv("CHUNK_SIZE", "300"))
     chunk_overlap: int = int(os.getenv("CHUNK_OVERLAP", "50"))
-    
+
     api_host: str = os.getenv("API_HOST", "127.0.0.1")
     api_port: int = int(os.getenv("API_PORT", "8000"))
     api_title: str = os.getenv("API_TITLE", "Local Chatbot API")

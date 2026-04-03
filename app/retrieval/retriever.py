@@ -1,3 +1,4 @@
+import hashlib
 import chromadb
 
 from sentence_transformers import SentenceTransformer, CrossEncoder
@@ -14,14 +15,15 @@ collection = client.get_or_create_collection("documents")
 embedder = SentenceTransformer("all-MiniLM-L6-v2")
 reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
 
-def add_document(text):
+def add_document(text, metadata=None):
 
     embedding = embedder.encode(text).tolist()
     
     collection.add(
         documents=[text],
         embeddings=[embedding],
-        ids=[str(hash(text))]
+        metadatas=[metadata or {}],
+        ids=[make_chunk_id(text, metadata)],
     )
 
 def search_single_query(query, vector_k=5, keyword_k=5):
@@ -57,7 +59,7 @@ def search_single_query(query, vector_k=5, keyword_k=5):
 
     return unique_docs, unique_meta
 
-def search_multi_query(queries, top_k=3, vector_k=5, keyword_k=5):
+def search_multi_query(queries, top_k=3, vector_k=5, keyword_k=5, return_scores=False):
     all_docs = []
     all_metas = []
 
@@ -84,18 +86,26 @@ def search_multi_query(queries, top_k=3, vector_k=5, keyword_k=5):
 
     if not merged_docs:
         return [], []
-    
-    pairs = [[queries[0], doc] for doc in merged_docs]
-    scores = reranker.predict(pairs)
+
+    scored = []
+    for doc, meta in zip(merged_docs, merged_metas):
+        pairs = [[query, doc] for query in queries]
+        scores = reranker.predict(pairs)
+        best_score = max(scores) if len(scores) else 0.0
+        scored.append((doc, meta, best_score))
 
     ranked = sorted(
-        zip(merged_docs, merged_metas, scores),
+        scored,
         key=lambda x: x[2],
         reverse=True
     )
 
     top_docs = [item[0] for item in ranked[:top_k]]
     top_metas = [item[1] for item in ranked[:top_k]]
+
+    if return_scores:
+        top_scores = [item[2] for item in ranked[:top_k]]
+        return top_docs, top_metas, top_scores
 
     return top_docs, top_metas
 
@@ -112,3 +122,12 @@ def chunk_text(text, chunk_size=300, overlap=50):
         start += chunk_size - overlap
     
     return chunks
+
+def make_chunk_id(text, metadata=None):
+    source=""
+    chunk=""
+    if metadata:
+        source = str(metadata.get("source", ""))
+        chunk = str(metadata.get("chunk", ""))
+    raw = f"{source}::{chunk}::{text}".encode("utf-8")
+    return hashlib.sha256(raw).hexdigest()
