@@ -85,6 +85,8 @@ def search_multi_query(queries, top_k=3, vector_k=5, keyword_k=5, return_scores=
             seen.add(key)
 
     if not merged_docs:
+        if return_scores:
+            return [], [], []
         return [], []
 
     scored = []

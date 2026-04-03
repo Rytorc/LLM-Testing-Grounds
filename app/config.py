@@ -21,7 +21,7 @@ class Settings:
     docs_path: str = os.getenv("DOCS_PATH", "test_documents")
     data_path: str = os.getenv("DATA_PATH", "data")
     history_file: str = os.getenv("HISTORY_FILE", "history.json")
-    chroma_path: str = os.getenv("CHORMA_PATH", "data/chroma")
+    chroma_path: str = os.getenv("CHROMA_PATH", "data/chroma")
 
     retrieval_top_k: int = int(os.getenv("RETRIEVAL_TOP_K", "3"))
     multi_query_count: int = int(os.getenv("MULTI_QUERY_COUNT", "4"))

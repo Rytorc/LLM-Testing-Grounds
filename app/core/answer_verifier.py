@@ -4,7 +4,7 @@ def verify_answer(user_input, evidence_text, draft_answer, model):
     prompt = f"""
     You are a verification assistant.
 
-    Your task is to check whether the draft answer is fully supported by the provided evidence summary.
+    Your task is to check whether the draft answer is fully supported by the provided evidence.
 
     Rules:
     - Return exactly one of these labels on the first line:
