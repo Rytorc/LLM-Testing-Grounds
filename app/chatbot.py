@@ -17,18 +17,7 @@ from app.tools.tool_router import decide_action, parse_action, execute_tool_acti
 
 from .config import settings
 
-@staticmethod
-def build_evidence_blocks(docs, metadata):
-    blocks = []
 
-    for doc, meta in zip(docs, metadata):
-        source = meta.get("source", "unknown")
-        chunk = meta.get("chunk", "unknown")
-        blocks.append(
-            f"Source: {source}\nChunk: {chunk}\nContent:\n{doc}"
-        )
-
-    return "\n\n---\n\n".join(blocks)
 
 class ChatBot:
 
@@ -62,6 +51,19 @@ class ChatBot:
             return format_source_matches(matches, query)
         
         return None
+    
+    @staticmethod
+    def build_evidence_blocks(docs, metadata):
+        blocks = []
+
+        for doc, meta in zip(docs, metadata):
+            source = meta.get("source", "unknown")
+            chunk = meta.get("chunk", "unknown")
+            blocks.append(
+                f"Source: {source}\nChunk: {chunk}\nContent:\n{doc}"
+            )
+
+        return "\n\n---\n\n".join(blocks)
 
     def chat_structured(self , user_input: str) -> dict:
         available_documents = list_documents()
@@ -117,7 +119,7 @@ class ChatBot:
                 "verification_status": "UNSUPPORTED"
             }
 
-        raw_evidence = build_evidence_blocks(docs, metadata)
+        raw_evidence = self.build_evidence_blocks(docs, metadata)
         compressed_context = compress_context(
             rewritten_query,
             docs,
