@@ -38,5 +38,25 @@
     "expected_keywords": ["ubuntu"],
     "forbidden_keywords": [],
     "expected_verification_status": null
+  },
+  {
+  "name": "open_docker_notes_natural",
+  "input": "Open the Docker notes",
+  "expected_used_tool": true,
+  "expected_tool_name": "read_document",
+  "expected_sources": ["notes/docker.md"],
+  "expected_keywords": ["Docker Quick Notes"],
+  "forbidden_keywords": [],
+  "expected_verification_status": null
+  },
+  {
+  "name": "open_docker_notes_natural",
+  "input": "Open the Docker notes",
+  "expected_used_tool": true,
+  "expected_tool_name": "read_document",
+  "expected_sources": ["notes/docker.md"],
+  "expected_keywords": ["Docker Quick Notes"],
+  "forbidden_keywords": [],
+  "expected_verification_status": null
   }
 ]

@@ -1,9 +1,16 @@
 from app.core.ollama_client import generate
-from app.tools.document_tools import list_documents, read_document, search_sources
+from app.tools.document_tools import (
+    list_documents, 
+    read_document, 
+    search_sources, 
+    resolve_document_request
+)
 from .tool_formatter import (
     format_document_list,
     format_source_matches,
     format_document_content,
+    format_document_candidates,
+    format_document_not_found,
 )
 
 def execute_tool_action(parsed_action):
@@ -12,17 +19,62 @@ def execute_tool_action(parsed_action):
 
     if tool_name == "list_documents":
         documents = list_documents()
-        return format_document_list(documents)
+        return {
+            "answer": format_document_list(documents),
+            "used_tool": True,
+            "tool_name": "list_documents",
+            "sources": []
+        }
     
     if tool_name == "search_sources":
         query = args.get("query", "")
         matches = search_sources(query)
-        return format_source_matches(matches, query)
+        return {
+            "answer": format_source_matches(matches, query),
+            "used_tool": True,
+            "tool_name": "search_sources",
+            "sources": []
+        }
     
     if tool_name == "read_document":
-        source = args.get("source", "")
-        content = read_document(source)
-        return format_document_content(source , content)
+        requested_source = args.get("source", "").strip()
+
+        content = read_document(requested_source)
+        if content is not None:
+            return {
+                "answer": format_document_content(requested_source , content),
+                "used_tool": True,
+                "tool_name": "read_document",
+                "sources": [requested_source]
+            }
+
+        candidates = resolve_document_request(requested_source)
+
+        if not candidates:
+            return {
+                "answer": format_document_not_found(requested_source),
+                "used_tool": True,
+                "tool_name": "read_document",
+                "sources": []
+            }
+        
+        if len(candidates) == 1 or (len(candidates) > 1 and candidates[0][1] - candidates[1][1] >= 15):
+            best_source = candidates[0][0]
+            content = read_document(best_source)
+
+            return {
+                "answer": format_document_content(best_source, content),
+                "used_tool": True,
+                "tool_name": "read_document",
+                "sources": [best_source]
+            }
+        
+        return {
+            "answer": format_document_candidates(requested_source),
+            "used_tool": True,
+            "tool_name": "read_document",
+            "sources": []
+        }
     
     return None
 
@@ -40,8 +92,10 @@ def decide_action(user_input, documents, model):
         - Use when the user wants to find documents by topic, keyword, filename, or subject.
 
     3. tool:read_document:<source>
-        - Use when the user wants to open, show, read, or inspect one specific document.
-        - Only use an exact source from the indexed documents list below.
+        Use when the user wants to open, read, show, inspect, or display a document.
+        The value may be either:
+        - an exact source filename, or
+        - a natural-language description like "docker notes" or "ubuntu file"
 
     4. rag
         - Use when the user is asking a normal question that should be answered with retrieval and reasoning.

@@ -18,8 +18,18 @@ def format_document_content(source, content):
     if content is None:
         return f'Document not found: {source}'
     
-    return f"""
-    Document: {source}
+    return f"Document: {source}\n\n{content}"
 
-    {content}
-    """
+def format_document_not_found(query):
+    return f'No indexed document matched "{query}".'
+
+def format_document_candidates(query, candidates):
+    if not candidates:
+        return format_document_not_found(query)
+    
+    lines = [f'I found multiple possible documents for "{query}":']
+    for source, score in candidates:
+        lines.append(f"- {source}")
+
+    lines.append("\nPlease ask again using one of the exact file names.")
+    return "\n".join(lines)

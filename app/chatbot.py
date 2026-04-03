@@ -56,20 +56,20 @@ class ChatBot:
         parsed_action = parse_action(action_text)
 
         if parsed_action["type"] == "tool":
-            tool_response = execute_tool_action(parsed_action)
+            tool_result = execute_tool_action(parsed_action)
 
-            if tool_response is not None:
+            if tool_result is not None:
                 tool_name = parsed_action.get("tool")
 
                 self.memory.add_user(user_input)
-                self.memory.add_assistant(tool_response)
+                self.memory.add_assistant(tool_result["answer"])
                 self.memory.maybe_compress(self.model)
 
                 return {
-                    "answer": tool_response,
-                    "sources": [],
-                    "used_tool": True,
-                    "tool_name": tool_name,
+                    "answer": tool_result["answer"],
+                    "sources": tool_result.get("sources", []),
+                    "used_tool": tool_result.get("used_tool", True),
+                    "tool_name": tool_result.get("tool_name"),
                     "verification_status": None,
                 }
 
