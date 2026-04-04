@@ -8,7 +8,6 @@ from app.api.schemas import (
 )
 from app.chatbot import ChatBot
 from app.tools.document_tools import list_documents, read_document
-from app.core.response_formatter import extract_unique_sources
 
 router = APIRouter()
 
@@ -28,7 +27,7 @@ def health():
 @router.post("/chat", response_model=ChatResponse)
 def chat(request: ChatRequest):
     bot = get_session_bot(request.session_id)
-    result = bot.chat_structured(request.message)
+    result = bot.chat_structured(request.message, debug=request.debug)
     return result
 
 @router.get("/documents", response_model=DocumentsResponse)

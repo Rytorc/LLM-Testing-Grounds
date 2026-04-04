@@ -37,7 +37,7 @@ def check_sources(actual_sources, expected_sources):
     return missing
 
 def evaluate_case(bot, case):
-    result = bot.chat_structured(case["input"])
+    result = bot.chat_structured(case["input"], debug = True)
 
     failures = []
 
@@ -113,6 +113,9 @@ def main():
             
             print("\nVerification:")
             print(result.get("verification_status"))
+
+            print("\nDebug:")
+            print(json.dumps(result.get("debug", []), indent=2))
         else:
             passed += 1
             print("PASS")

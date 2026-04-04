@@ -27,6 +27,7 @@ class Settings:
     multi_query_count: int = int(os.getenv("MULTI_QUERY_COUNT", "4"))
     vector_search_k: int = int(os.getenv("VECTOR_SEARCH_K", "5"))
     keyword_search_k: int = int(os.getenv("KEYWORD_SEARCH_K", "5"))
+    retrieval_score_threshold: float = float(os.getenv("RETRIEVAL_SCORE_THRESHOLD", "0.25"))
 
     max_messages: int = int(os.getenv("MAX_MESSAGES", "10"))
     chunk_size: int = int(os.getenv("CHUNK_SIZE", "300"))

@@ -64,29 +64,73 @@ class ChatBot:
             )
 
         return "\n\n---\n\n".join(blocks)
+    
+    @staticmethod
+    def build_retrieval_debug(docs, metadata, scores):
+        results = []
 
-    def chat_structured(self , user_input: str) -> dict:
+        for idx, (doc, meta) in enumerate(zip(docs, metadata), start=1):
+            score = scores[idx - 1] if idx - 1 < len(scores) else None
+            results.append({
+                "rank": idx,
+                "score": score,
+                "source": meta.get("source", "unknown"),
+                "chunk": meta.get("chunk", "unknown"),
+                "preview": doc[:200]
+            })
+
+        return results
+
+    def chat_structured(self , user_input: str, debug: bool = False) -> dict:
         available_documents = list_documents()
         action_text = decide_action(user_input, available_documents, self.model)
         parsed_action = parse_action(action_text)
+
+        debug_info = {
+            "routing": {
+                "action_text": action_text,
+                "parsed_action": parsed_action
+            },
+            "rewritten_query": None,
+            "extra_queries": [],
+            "queries": [],
+            "retrieval": {
+                "top_k": settings.retrieval_top_k,
+                "vector_search_k": settings.vector_search_k,
+                "keyword_search_k": settings.keyword_search_k,
+                "score_threshold": settings.retrieval_score_threshold,
+                "scores": [],
+                "results": [],
+                "used_fallback": None,
+                "fallback_reason": None
+            },
+            "verification": {
+                "status": None,
+                "reason": None,
+            },
+        }
 
         if parsed_action["type"] == "tool":
             tool_result = execute_tool_action(parsed_action)
 
             if tool_result is not None:
-                tool_name = parsed_action.get("tool")
-
                 self.memory.add_user(user_input)
                 self.memory.add_assistant(tool_result["answer"])
                 self.memory.maybe_compress(self.model)
 
-                return {
+                result = {
                     "answer": tool_result["answer"],
                     "sources": tool_result.get("sources", []),
                     "used_tool": tool_result.get("used_tool", True),
                     "tool_name": tool_result.get("tool_name"),
                     "verification_status": None,
                 }
+            
+                debug_info["retrieval"]["fallback_reason"] = "tool_route"
+                if debug:
+                    result["debug"] = debug_info
+                
+                return result
 
         self.memory.add_user(user_input)
         self.memory.maybe_compress(self.model)
@@ -98,6 +142,10 @@ class ChatBot:
             q for q in extra_queries if q.lower() != rewritten_query.lower()
         ]
 
+        debug_info["rewritten_query"] = rewritten_query
+        debug_info["extra_queries"] = extra_queries
+        debug_info["queries"] = queries
+
         docs, metadata, scores = search_multi_query(
             queries, 
             settings.retrieval_top_k, 
@@ -106,18 +154,54 @@ class ChatBot:
             return_scores=True
         )
 
-        if not docs or (scores and max(scores) < 0.25):
+        debug_info["retrieval"]["scores"] = scores
+        debug_info["retrieval"]["results"] = self.build_retrieval_debug(docs, metadata, scores)
+
+        if not docs:
             fallback = (
                 "I couldn't find enough reliable evidence in the indexed documents to answer that confidently."
             )
             self.memory.add_assistant(fallback)
-            return {
+
+            debug_info["retrieval"]["used_fallback"] = True
+            debug_info["retrieval"]["fallback_reason"] = "no_results"
+
+            result = {
                 "answer": fallback,
                 "sources": [],
                 "used_tool": False,
                 "tool_name": None,
                 "verification_status": "UNSUPPORTED"
             }
+
+            if debug:
+                result["debug"] = debug_info
+
+            return result
+
+        max_score = max(scores) if scores else None
+        if max_score is not None and max_score < settings.retrieval_score_threshold:
+            fallback = (
+                "I couldn't find enough reliable evidence in the indexed documents to answer that confidently."
+            )
+            self.memory.add_assistant(fallback)
+
+            debug_info["retrieval"]["used_fallback"] = True
+            debug_info["retrieval"]["fallback_reason"] = "low_score"
+
+            result = {
+                "answer": fallback,
+                "sources": [],
+                "used_tool": False,
+                "tool_name": None,
+                "verification_status": "UNSUPPORTED"
+            }
+
+            if debug:
+                result["debug"] = debug_info
+
+            return result
+
 
         raw_evidence = self.build_evidence_blocks(docs, metadata)
         compressed_context = compress_context(
@@ -160,13 +244,22 @@ class ChatBot:
         except OllamaClientError as e:
             fallback = f"Model error: {e}"
             self.memory.add_assistant(fallback)
-            return {
+
+            debug_info["retrieval"]["used_fallback"] = True
+            debug_info["retrieval"]["fallback_reason"] = "model_error"
+
+            result = {
                 "answer": fallback,
                 "sources": [],
                 "used_tool": False,
                 "tool_name": None,
                 "verification_status": "UNSUPPORTED",
             }
+
+            if debug:
+                result["debug"] = debug_info
+
+            return result
 
         verification = apply_verification(
             user_input=user_input,
@@ -178,16 +271,24 @@ class ChatBot:
         verified_reply = verification["final_answer"]
         sources = extract_unique_sources(metadata)
 
+        debug_info["verification"]["status"] = verification["verification_status"]
+        debug_info["verification"]["reason"] = verification.get("verification_reason")
+
         self.memory.add_assistant(verified_reply)
         self.memory.maybe_compress(self.model)
 
-        return {
+        result = {
             "answer": verified_reply,
             "sources": sources,
             "used_tool": False,
             "tool_name": None,
             "verification_status": verification["verification_status"]
         }
+
+        if debug:
+            result["debug"] = debug_info
+
+        return result
 
 
     def chat(self, user_input: str) -> str:

@@ -1,9 +1,10 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 class ChatRequest(BaseModel):
     message: str
     session_id: str = Field(default="default")
+    debug: bool = False
 
 class ChatResponse(BaseModel):
     answer: str
@@ -11,6 +12,7 @@ class ChatResponse(BaseModel):
     used_tool: bool = False
     tool_name: Optional[str] = None
     verification_status: Optional[str]= None
+    debug: Optional[Dict[str, Any]] = None
 
 class HealthResponse(BaseModel):
     status: str
