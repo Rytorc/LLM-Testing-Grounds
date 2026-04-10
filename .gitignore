@@ -127,6 +127,7 @@ qdrant_storage/
 
 data/
 uploads/
+evals/results/
 
 # =========================
 

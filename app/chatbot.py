@@ -27,30 +27,6 @@ class ChatBot:
             history_file=history_file
         )
         self.model = model or settings.model_name
-
-    def try_handle_tool(self, user_input):
-        lowered = user_input.strip().lower()
-
-        if lowered in ["list documents", "show documents", "show indexed documents"]:
-            documents = list_documents()
-            return format_document_list(documents)
-        
-        if lowered.startswith("read document "):
-            source = user_input[len("read document "):].strip()
-            content = read_document(source)
-            return format_document_content(source, content)
-        
-        if lowered.startswith("find document "):
-            query = user_input[len("find document "):].strip()
-            matches = search_sources(query)
-            return format_source_matches(matches, query)
-        
-        if lowered.startswith("search sources "):
-            query = user_input[len("search sources "):].strip()
-            matches = search_sources(query)
-            return format_source_matches(matches, query)
-        
-        return None
     
     @staticmethod
     def build_evidence_blocks(docs, metadata):
@@ -70,7 +46,7 @@ class ChatBot:
         results = []
 
         for idx, (doc, meta) in enumerate(zip(docs, metadata), start=1):
-            score = scores[idx - 1] if idx - 1 < len(scores) else None
+            score = float(scores[idx - 1]) if idx - 1 < len(scores) else None
             results.append({
                 "rank": idx,
                 "score": score,
@@ -101,7 +77,7 @@ class ChatBot:
                 "score_threshold": settings.retrieval_score_threshold,
                 "scores": [],
                 "results": [],
-                "used_fallback": None,
+                "used_fallback": False,
                 "fallback_reason": None
             },
             "verification": {
@@ -154,7 +130,7 @@ class ChatBot:
             return_scores=True
         )
 
-        debug_info["retrieval"]["scores"] = scores
+        debug_info["retrieval"]["scores"] = [float(score) for score in scores]
         debug_info["retrieval"]["results"] = self.build_retrieval_debug(docs, metadata, scores)
 
         if not docs:

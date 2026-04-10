@@ -10,53 +10,153 @@
     "expected_verification_status": "SUPPORTED"
   },
   {
+    "name": "docker_definition_supported",
+    "input": "What is Docker?",
+    "expected_used_tool": false,
+    "expected_tool_name": null,
+    "expected_sources": ["notes/docker.md"],
+    "expected_keywords": ["containerization platform", "portable containers"],
+    "forbidden_keywords": ["Kubernetes", "docker compose"],
+    "expected_verification_status": "SUPPORTED"
+  },
+  {
+    "name": "docker_run_hello_world_supported",
+    "input": "How do I run a simple Docker container?",
+    "expected_used_tool": false,
+    "expected_tool_name": null,
+    "expected_sources": ["notes/docker.md"],
+    "expected_keywords": ["docker run hello-world"],
+    "forbidden_keywords": ["kubectl run", "docker compose up"],
+    "expected_verification_status": "SUPPORTED"
+  },
+  {
+    "name": "docker_start_service_supported",
+    "input": "How do I start Docker after installing it?",
+    "expected_used_tool": false,
+    "expected_tool_name": null,
+    "expected_sources": ["notes/docker.md"],
+    "expected_keywords": ["systemctl start docker"],
+    "forbidden_keywords": ["systemctl enable docker", "service docker restart"],
+    "expected_verification_status": "SUPPORTED"
+  },
+  {
+    "name": "docker_install_ubuntu_supported",
+    "input": "How do I install Docker on Ubuntu?",
+    "expected_used_tool": false,
+    "expected_tool_name": null,
+    "expected_sources": ["notes/docker.md"],
+    "expected_keywords": ["apt update", "apt install docker.io"],
+    "forbidden_keywords": ["dnf install", "pacman -S"],
+    "expected_verification_status": "SUPPORTED"
+  },
+  {
+    "name": "docker_generic_linux_supported",
+    "input": "How do I set up Docker on Linux?",
+    "expected_used_tool": false,
+    "expected_tool_name": null,
+    "expected_sources": ["notes/docker.md"],
+    "expected_keywords": ["docker.io", "systemctl start docker"],
+    "forbidden_keywords": ["yum", "pacman", "brew"],
+    "expected_verification_status": "SUPPORTED"
+  },
+  {
+    "name": "docker_purpose_supported",
+    "input": "What does Docker help developers do?",
+    "expected_used_tool": false,
+    "expected_tool_name": null,
+    "expected_sources": ["notes/docker.md"],
+    "expected_keywords": ["package applications", "dependencies", "portable containers"],
+    "forbidden_keywords": ["orchestration", "pods"],
+    "expected_verification_status": "SUPPORTED"
+  },
+  {
+    "name": "kubernetes_strongly_unsupported",
+    "input": "What is the Kubernetes deployment process?",
+    "expected_used_tool": false,
+    "expected_tool_name": null,
+    "expected_sources": [],
+    "expected_keywords": ["couldn't", "evidence", "confidently"],
+    "forbidden_keywords": ["kubectl apply", "deployment.yaml"],
+    "expected_verification_status": "UNSUPPORTED"
+  },
+  {
+    "name": "docker_compose_unsupported",
+    "input": "How do I use Docker Compose?",
+    "expected_used_tool": false,
+    "expected_tool_name": null,
+    "expected_sources": [],
+    "expected_keywords": ["couldn't", "evidence", "confidently"],
+    "forbidden_keywords": ["docker compose up", "docker-compose.yml"],
+    "expected_verification_status": "UNSUPPORTED"
+  },
+  {
+    "name": "enable_docker_service_unsupported",
+    "input": "How do I enable Docker to start on boot?",
+    "expected_used_tool": false,
+    "expected_tool_name": null,
+    "expected_sources": [],
+    "expected_keywords": ["couldn't", "evidence", "confidently"],
+    "forbidden_keywords": ["systemctl enable docker"],
+    "expected_verification_status": "UNSUPPORTED"
+  },
+  {
+    "name": "docker_production_deploy_unsupported",
+    "input": "How do I deploy Docker containers to production?",
+    "expected_used_tool": false,
+    "expected_tool_name": null,
+    "expected_sources": [],
+    "expected_keywords": ["couldn't", "evidence", "confidently"],
+    "forbidden_keywords": ["load balancer", "orchestration", "CI/CD"],
+    "expected_verification_status": "UNSUPPORTED"
+  },
+  {
     "name": "list_documents_tool",
     "input": "What documents do I have indexed?",
     "expected_used_tool": true,
     "expected_tool_name": "list_documents",
     "expected_sources": [],
-    "expected_keywords": ["notes/docker.md"],
+    "expected_keywords": ["Indexed documents:", "notes/docker.md"],
     "forbidden_keywords": [],
     "expected_verification_status": null
   },
   {
-    "name": "read_document_tool",
+    "name": "read_document_tool_exact",
     "input": "Open notes/docker.md",
     "expected_used_tool": true,
     "expected_tool_name": "read_document",
-    "expected_sources": [],
-    "expected_keywords": ["Docker Quick Notes"],
+    "expected_sources": ["notes/docker.md"],
+    "expected_keywords": ["Document: notes/docker.md", "Docker Quick Notes"],
     "forbidden_keywords": [],
     "expected_verification_status": null
   },
   {
-    "name": "search_sources_tool",
-    "input": "Do I have any Ubuntu-related files?",
+    "name": "read_document_tool_natural",
+    "input": "Open the Docker notes",
+    "expected_used_tool": true,
+    "expected_tool_name": "read_document",
+    "expected_sources": ["notes/docker.md"],
+    "expected_keywords": ["Document: notes/docker.md", "Docker Quick Notes"],
+    "forbidden_keywords": [],
+    "expected_verification_status": null
+  },
+  {
+    "name": "search_sources_tool_docker",
+    "input": "Do I have any Docker-related files?",
     "expected_used_tool": true,
     "expected_tool_name": "search_sources",
     "expected_sources": [],
-    "expected_keywords": ["ubuntu"],
-    "forbidden_keywords": [],
+    "expected_keywords": ["Documents matching", "notes/docker.md"],
+    "forbidden_keywords": ["No indexed documents matched"],
     "expected_verification_status": null
   },
   {
-  "name": "open_docker_notes_natural",
-  "input": "Open the Docker notes",
-  "expected_used_tool": true,
-  "expected_tool_name": "read_document",
-  "expected_sources": ["notes/docker.md"],
-  "expected_keywords": ["Docker Quick Notes"],
-  "forbidden_keywords": [],
-  "expected_verification_status": null
-  },
-  {
-  "name": "unknown_topic_should_not_bluff",
-  "input": "What is the Kubernetes deployment process in my notes?",
-  "expected_used_tool": false,
-  "expected_tool_name": null,
-  "expected_sources": [],
-  "expected_keywords": ["don’t", "not enough", "evidence"],
-  "forbidden_keywords": ["kubectl apply", "deployment.yaml"],
-  "expected_verification_status": "UNSUPPORTED"
+    "name": "search_sources_tool_missing_topic",
+    "input": "Do I have any Kubernetes-related files?",
+    "expected_used_tool": true,
+    "expected_tool_name": "search_sources",
+    "expected_sources": [],
+    "expected_keywords": ["No indexed documents matched"],
+    "forbidden_keywords": ["notes/docker.md"],
+    "expected_verification_status": null
   }
 ]
